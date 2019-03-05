@@ -10,6 +10,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
+// Added for Identity
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+
+// Local models
+using IdentDemo.Models;
+using IdentDemo.Data;
+
 namespace IdentDemo
 {
     public class Startup
@@ -31,6 +39,15 @@ namespace IdentDemo
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
+            // Add DbContext-service.
+            // Get connectionstring in options.
+            services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+
+            // Add Identity-service. With ApplicationUser ass User-model
+            services.AddIdentity<ApplicationUser, IdentityRole>()
+                .AddEntityFrameworkStores<ApplicationDbContext>()
+                .AddDefaultTokenProviders();
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }
@@ -52,6 +69,9 @@ namespace IdentDemo
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseCookiePolicy();
+
+            // Authentication-middleware
+            app.UseAuthentication();
 
             app.UseMvc(routes =>
             {
